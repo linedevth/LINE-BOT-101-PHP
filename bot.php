@@ -1,18 +1,26 @@
 <?php
-$access_token = 'XXXXXXXXXXXXXXXXXXXXXXX';
+$ACCESS_TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXX';
 
 // Get POST body content
 $content = file_get_contents('php://input');
+
 // Parse JSON
 $events = json_decode($content, true);
+
+$output = [];
+
 // Validate parsed JSON data
 if (!is_null($events['events'])) {
+
  // Loop through each event
  foreach ($events['events'] as $event) {
+
   // Reply only when message sent is in 'text' format
   if ($event['type'] == 'message' && $event['message']['type'] == 'text') {
+
    // Get text sent
    $text = $event['message']['text'];
+
    // Get replyToken
    $replyToken = $event['replyToken'];
 
@@ -29,7 +37,7 @@ if (!is_null($events['events'])) {
     'messages' => [$messages],
    ];
    $post = json_encode($data);
-   $headers = array('Content-Type: application/json', 'Authorization: Bearer ' . $access_token);
+   $headers = array('Content-Type: application/json', 'Authorization: Bearer ' . $ACCESS_TOKEN);
 
    $ch = curl_init($url);
    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
@@ -40,8 +48,9 @@ if (!is_null($events['events'])) {
    $result = curl_exec($ch);
    curl_close($ch);
 
-   echo $result . "\r\n";
+   $output[] = json_decode($result);
   }
  }
 }
-echo "OK";
+
+echo json_encode($output);
