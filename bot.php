@@ -4,6 +4,9 @@ $ACCESS_TOKEN = 'XXXXXXXXXXXXXXXXXXXXXXX';
 // Get POST body content
 $content = file_get_contents('php://input');
 
+// Log Webhook POST to console
+error_log("Incoming Webhook: " . $content);
+
 // Parse JSON
 $events = json_decode($content, true);
 
