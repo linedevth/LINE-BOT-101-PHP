@@ -14,19 +14,21 @@ if (isset($_GET['push'])) {
 }
 
 function push() {
-      // get JSON from Sanook API
-      
-      // convert JSON to Array
-      
-      // foreach items
-      
-      
-      // Msg payload
-
-      // Body payload (replyToken => to)
-
-      // Curl
-      
+      $exchangeData = file_get_contents(SANOOK_API);
+      $exchangeArray = json_decode($exchangeData, true);
+      foreach ($exchangeArray['item'] as $item) {
+            $pushMsg .= $item['title']." ".$item['description']."\n\n";
+      }
+      $pushMsg = substr($pushMsg, 0, -2);
+      $message = [
+            'type' => 'text',
+            'text' => $pushMsg
+      ];
+      $body = [
+            'to' => LINE_USER_ID,
+            'messages' => [$message]
+      ];
+      curl('push', json_encode($body));
       echo $pushMsg;
 }
 
@@ -43,19 +45,29 @@ function reply() {
             
                   // Reply only when message type is text
                   if ($event['type'] == 'message' && $event['message']['type'] == 'text') {
-                        // get JSON from Sanook API
-      
-                        // convert JSON to Array
-
-                        // trim and upper
-
-                        // Switch currencies
-
-                        // Msg payload
+                        $text = strtoupper(trim($event['message']['text']));
                         
-                        // Body payload
+                        $exchangeData = file_get_contents(SANOOK_API);
+                        $exchangeArray = json_decode($exchangeData, true);
 
-                        // Curl
+                        switch ($text) {
+                              case 'USD': $replyMsg = $exchangeArray['item'][0]['description']; break;
+                              case 'JPY': $replyMsg = $exchangeArray['item'][1]['description']; break;
+                              case 'EUR': $replyMsg = $exchangeArray['item'][2]['description']; break;
+                              case 'GBP': $replyMsg = $exchangeArray['item'][3]['description']; break;
+                              case 'HKD': $replyMsg = $exchangeArray['item'][4]['description']; break;
+                              default: $replyMsg = 'Sorry "'.$text.'" is not supported.';
+                        }
+
+                        $message = [
+                              'type' => 'text',
+                              'text' => $replyMsg
+                        ];
+                        $body = [
+                              'replyToken' => $event['replyToken'],
+                              'messages' => [$message]
+                        ];
+                        curl('reply', json_encode($body));
                   }
             }
       }
